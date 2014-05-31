@@ -5,8 +5,8 @@
  * @version 1.0
  * @author tkurowski
  *
- * @class JSML (JS Markup Language) lets you build an ML structure in JS.
- * 
+ * @class JSML (JS Markup Language) lets you build a ML structure in JS.
+ *
  * var HTMLBuilder = new JSML("head", "body", "article", "br/", "img/", ...);
  * // You can add tags to existing JSML object:
  * HTMLBuilder.tags("quote", "pre", "p";)
@@ -48,33 +48,35 @@ var JSML = (function () {
 
 
     ElementBuilder.prototype = {
-	    constructor: ElementBuilder,
+        constructor: ElementBuilder,
 
         _tag: null,
         _children: null,
         _isSelfClosing: false,
 
-	    html: function () {
+        html: function () {
             return this._closeTag(this._innerHTML(this._openTag())).join("");
-	    },
+        },
 
-	    dom: function () {
+        dom: function () {
             return this._domChildren(this._domElement());
-	    },
+        },
 
         callableElement: function () {
-	        var ce = function () {
+            var ce = function () {
                 var self = arguments.callee,
                     build = self.build;
                 Array.prototype.forEach.call(arguments, build.parse, build);
-		        return self;
-	        };
+                return self;
+            };
             ce.build = this;
             return ce;
         },
 
         parse: function (item) {
-            if (item === null || item === undefined) {throw new SyntaxError("Bad argument: " + item);}
+            if (item === null || item === undefined) {
+                throw new SyntaxError("Bad argument: " + item);
+            }
 
             if (Array.isArray(item)) {
                 item.forEach(arguments.callee, this)
@@ -99,7 +101,8 @@ var JSML = (function () {
         },
 
         __isCallableElement: function (ce) {
-            return typeof ce === "function" && ce.build instanceof ElementBuilder;
+            return typeof ce === "function"
+                && ce.build instanceof ElementBuilder;
         },
 
         // --- HTML
@@ -108,12 +111,12 @@ var JSML = (function () {
             var arr = ["<", this._tag];
 
             if (this._attrs) {
-		        for (var attrname in this._attrs) {
-			        arr.push(" "+attrname);
-			        if (this._attrs[attrname] !== null) {
-				        arr.push('="' + this._attrs[attrname] + '"');
-			        }
-		        }
+                for (var attrname in this._attrs) {
+                    arr.push(" "+attrname);
+                    if (this._attrs[attrname] !== null) {
+                        arr.push('="' + this._attrs[attrname] + '"');
+                    }
+                }
             }
 
             arr.push(this._isSelfClosing ? "/>" : ">");
@@ -122,12 +125,12 @@ var JSML = (function () {
 
         _innerHTML: function (arr) {
             if (! this._isSelfClosing && this._children) {
-		        this._children.forEach(function (ch) {
-			        if (this.__isCallableElement(ch)) {
-				        arr.push(ch.build.html());
-			        }
-			        else arr.push(ch);
-		        }, this);
+                this._children.forEach(function (ch) {
+                    if (this.__isCallableElement(ch)) {
+                        arr.push(ch.build.html());
+                    }
+                    else arr.push(ch);
+                }, this);
             }
             return arr;
         },
@@ -144,28 +147,30 @@ var JSML = (function () {
         _domElement: function () {
             var el = document.createElement(this._tag);
             if (this._attrs) {
-		        for (var attrname in this._attrs) {
-			        el.setAttribute(attrname, this._attrs[attrname]);
-		        }
+                for (var attrname in this._attrs) {
+                    el.setAttribute(attrname, this._attrs[attrname]);
+                }
             }
             return el;
         },
 
         _domChildren: function (el) {
             if (! this._isSelfClosing && this._children) {
-			    this._children.forEach(function (ch) {
-				    if (this.__isCallableElement(ch)) {
-					    el.appendChild(ch.build.dom());
-				    }
-				    else {
-					    el.appendChild(document.createTextNode(ch));
-				    }
-			    }, this);
+                this._children.forEach(function (ch) {
+                    if (this.__isCallableElement(ch)) {
+                        el.appendChild(ch.build.dom());
+                    }
+                    else {
+                        el.appendChild(document.createTextNode(ch));
+                    }
+                }, this);
             }
             return el;
         },
 
-	    toString: function () {return "[object ElementBuilder: " + this._tag + "]";}
+        toString: function () {
+            return "[object ElementBuilder: " + this._tag + "]";
+        }
     };
 
 
@@ -179,7 +184,9 @@ var JSML = (function () {
             return this._innerHTML([]).join("");
         };
 
-        this._domElement = function () {return document.createDocumentFragment();};
+        this._domElement = function () {
+            return document.createDocumentFragment();
+        };
 
         this.toString = function () {return "[object FragmentBuilder]";};
 
@@ -196,12 +203,13 @@ var JSML = (function () {
         get frag() {return new FragmentBuilder().callableElement();},
 
         tags: function (/* ... */) {
-	        Array.prototype.forEach.call(arguments, function (tag) {
+            Array.prototype.forEach.call(arguments, function (tag) {
                 var args = this._parseTag(tag);
                 this.__defineGetter__(args[0], function () {
-                    return new ElementBuilder(args[0], args[1]).callableElement();
+                    return new ElementBuilder(
+                        args[0], args[1]).callableElement();
                 });
-	        }, this);
+            }, this);
 
             // chain...
             return this;
